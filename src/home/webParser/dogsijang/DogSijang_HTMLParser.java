@@ -32,7 +32,6 @@ public class DogSijang_HTMLParser extends Object
 	private Source source;
 	private Callback mCb;
 	private ArrayList<DogData> mDogData;
-	private int mMaxNo = -1;
 	
 	public DogSijang_HTMLParser(Context mContext, Handler mHandler, ArrayList<DogData> mDogData, Callback cb)
 	{
@@ -40,13 +39,6 @@ public class DogSijang_HTMLParser extends Object
 		this.mHandler = mHandler;
 		this.mDogData = mDogData;
 		mCb = cb;
-		if(mDogData != null) {
-			for(DogData obj : mDogData) {
-				if(mMaxNo < obj.iNo) {
-					mMaxNo = obj.iNo;
-				}
-			}
-		}
 	}
 	
 	public void open()
@@ -107,21 +99,17 @@ public class DogSijang_HTMLParser extends Object
 					for(int i=2; i<tr_count; i++)
 					{
 						tr = (Element) trList.get(i);
-						
 						List<Element> tdList = tr.getAllElements(HTMLElementName.TD);
 						if(tdList.size() > 8) {
-							int iNo = Integer.parseInt(tdList.get(0).getContent().toString().trim()); 
-							//String strSpecies = species.getContent().toString();
-							//Log.d("Test", "new:" + iNo + ", " + strSpecies);
-							if(iNo > mMaxNo) {
-								DogData dogData = new DogData();
-								dogData.iNo = iNo; 
-								Element species = tdList.get(1).getAllElements(HTMLElementName.A).get(0);
-								dogData.strSpecies = species.getContent().toString();
-								dogData.strCharacter = tdList.get(2).getAllElements(HTMLElementName.FONT).get(0).getAllElements(HTMLElementName.A).get(0).getContent().toString();
-								dogData.strPrice = tdList.get(6).getContent().toString();
-								dogData.strUri = species.getAttributes().getValue("href");
-								dogData.strContactNum = tdList.get(8).getAllElements(HTMLElementName.FONT).get(0).getContent().toString().trim();
+							DogData dogData = new DogData();
+							dogData.iNo = Integer.parseInt(tdList.get(0).getContent().toString().trim()); 
+							Element species = tdList.get(1).getAllElements(HTMLElementName.A).get(0);
+							dogData.strSpecies = species.getContent().toString();
+							dogData.strCharacter = tdList.get(2).getAllElements(HTMLElementName.FONT).get(0).getAllElements(HTMLElementName.A).get(0).getContent().toString();
+							dogData.strPrice = tdList.get(6).getContent().toString();
+							dogData.strUri = species.getAttributes().getValue("href");
+							dogData.strContactNum = tdList.get(8).getAllElements(HTMLElementName.FONT).get(0).getContent().toString().trim();
+							if(!isExistData(dogData)) {
 								mDogData.add(dogData);
 							}
 						}
@@ -150,9 +138,16 @@ public class DogSijang_HTMLParser extends Object
 			
 		}.start();
 	}
-	
 	private boolean isExistData(DogData input) {
-		boolean retVal = false;
-		return retVal;
+		boolean ret = false; 
+		if(mDogData != null && !mDogData.isEmpty()) {
+			for(DogData obj : mDogData) {
+				if(obj.equals(input)) {
+					ret = true;
+					break;
+				}
+			}
+		}
+		return ret;
 	}
 }

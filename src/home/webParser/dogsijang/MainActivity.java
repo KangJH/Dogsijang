@@ -49,9 +49,6 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		};
 		Collections.sort(mDogDatas, mArrayComparator);
 		Collections.reverse(mDogDatas);
-		/*for(DogData obj : mDogDatas) {
-			Log.d("Test", "old:" + obj.iNo + ", " + obj.strSpecies);
-		}*/
 		mMainListView = (ListView)findViewById(R.id.listview_main);
 		mHandler = new Handler();
 		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, mDogDatas, this);
@@ -114,18 +111,12 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 			Object extraObj) {
 		if(event == CallbackEvent.HTML_PARSING_DONE) {
 			if(mDogDB != null) {
-				boolean blIsNewDataAdded = false;
-				int iLatestNo = mDogDB.getLatestDogNo();
 				for(DogData data : mDogDatas) {
-					if(data.iNo > iLatestNo) {
-						mDogDB.add(data);
-						blIsNewDataAdded = true;
-					}
+					mDogDB.add(data);
 				}
-				if(blIsNewDataAdded) {
-					Collections.sort(mDogDatas, mArrayComparator);
-					Collections.reverse(mDogDatas);
-				}
+				Collections.sort(mDogDatas, mArrayComparator);
+				Collections.reverse(mDogDatas);
+				
 			}
 			if(mMainAdapter != null) {
 				mMainAdapter.notifyDataSetChanged();
