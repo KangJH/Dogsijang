@@ -111,11 +111,15 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 			Object extraObj) {
 		if(event == CallbackEvent.HTML_PARSING_DONE) {
 			if(mDogDB != null) {
-				for(DogData data : mDogDatas) {
-					mDogDB.add(data);
+				ArrayList<DogData> newDogData = (ArrayList<DogData>) extraObj;
+				if(newDogData != null && !newDogData.isEmpty()) {
+					for(DogData data : newDogData) {
+						mDogDB.add(data);
+						mDogDatas.add(data);
+					}
+					Collections.sort(mDogDatas, mArrayComparator);
+					Collections.reverse(mDogDatas);
 				}
-				Collections.sort(mDogDatas, mArrayComparator);
-				Collections.reverse(mDogDatas);
 				
 			}
 			if(mMainAdapter != null) {
