@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DogSijang</string>
+    <string name="action_settings">Settings</string>
+    <string name="progress_content">Data Loading...</string>
+	<string name="dogsijang_main_url">http://www.dogsijang.co.kr/board_dog</string>
+	<string name="dogsijang_sale_url">http://www.dogsijang.co.kr/board_dog/list.php?tb=board_sale</string>
+	
+</resources>
