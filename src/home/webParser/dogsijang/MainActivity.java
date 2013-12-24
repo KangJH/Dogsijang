@@ -23,7 +23,7 @@ import android.widget.ListView;
 
 public class MainActivity extends Activity implements OnItemClickListener, OnClickListener, DogSijang_HTMLParser.Callback {
 
-	ArrayList<DogData> mDogDatas = null;
+	ArrayList<DogData> mDogData = null;
 	Comparator<DogData> mArrayComparator = null;
 	ListView		mMainListView = null;
 	ListItem_Main	mMainAdapter = null;
@@ -34,9 +34,9 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		mDogDB = new DogDataDB(this);
-		mDogDatas = mDogDB.loadDB();
-		if(mDogDatas == null) {
-			mDogDatas = new ArrayList<DogData>();
+		mDogData = mDogDB.loadDB();
+		if(mDogData == null) {
+			mDogData = new ArrayList<DogData>();
 		}
 		//sort dog array by 'no'
 		mArrayComparator = new Comparator<DogData>() {
@@ -47,13 +47,13 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 				return collator.compare(Integer.toString(lhs.iNo), Integer.toString(rhs.iNo));
 			}
 		};
-		Collections.sort(mDogDatas, mArrayComparator);
-		Collections.reverse(mDogDatas);
+		Collections.sort(mDogData, mArrayComparator);
+		Collections.reverse(mDogData);
 		mMainListView = (ListView)findViewById(R.id.listview_main);
 		mHandler = new Handler();
-		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, mDogDatas, this);
+		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, mDogData, this);
 		hp.open();
-		mMainAdapter = new ListItem_Main(this, R.layout.listitem_main, mDogDatas, this);
+		mMainAdapter = new ListItem_Main(this, R.layout.listitem_main, mDogData, this);
         mMainListView.setAdapter(mMainAdapter);
         mMainListView.setOnItemClickListener(this);
 	}
@@ -111,19 +111,23 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 			Object extraObj) {
 		if(event == CallbackEvent.HTML_PARSING_DONE) {
 			if(mDogDB != null) {
-				ArrayList<DogData> newDogData = (ArrayList<DogData>) extraObj;
+				final ArrayList<DogData> newDogData = (ArrayList<DogData>) extraObj;
 				if(newDogData != null && !newDogData.isEmpty()) {
-					for(DogData data : newDogData) {
-						mDogDB.add(data);
-						mDogDatas.add(data);
+					mDogDB.addAll(newDogData);
+					if(mHandler != null) {
+						mHandler.post(new Runnable() {
+							public void run() {
+								mDogData.addAll(newDogData);
+								Collections.sort(mDogData, mArrayComparator);
+								Collections.reverse(mDogData);
+								if(mMainAdapter != null) {
+									mMainAdapter.notifyDataSetChanged();
+								}
+							}
+						});
 					}
-					Collections.sort(mDogDatas, mArrayComparator);
-					Collections.reverse(mDogDatas);
 				}
 				
-			}
-			if(mMainAdapter != null) {
-				mMainAdapter.notifyDataSetChanged();
 			}
 		}
 		
