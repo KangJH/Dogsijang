@@ -20,10 +20,9 @@ public class DogData {
 	}
 	public boolean equals(DogData input) {
 		boolean retVal = false;
-		if(strSpecies != null && strCharacter != null && strPrice != null &&
-				input != null && input.strSpecies != null && input.strCharacter != null && input.strPrice != null) {
-			if(iNo == input.iNo && strSpecies.equals(input.strSpecies) &&
-					strCharacter.equals(input.strCharacter) && strPrice.equals(input.strPrice) ) {
+		if(strSpecies != null && iNo > 0 &&
+				input != null && input.strSpecies != null && input.iNo > 0 ) {
+			if(iNo == input.iNo && strSpecies.equals(input.strSpecies)) {
 				retVal = true;
 			}
 		}

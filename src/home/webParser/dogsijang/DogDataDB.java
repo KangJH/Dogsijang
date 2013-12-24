@@ -73,18 +73,22 @@ public class DogDataDB extends SQLiteOpenHelper {
 		return ret;
 	}
 	
-	private int getOldestDogNo() {
+	private int getOldestDogNo(int from) {
 		int ret = -1;
 		SQLiteDatabase db = getReadableDatabase();
 		String sql = "SELECT "
-				+ "MIN(" + COL_NO + ") "
-				+ "FROM " + TABLE_NAME + ";";
+				+ COL_NO
+				+ " FROM " + TABLE_NAME 
+				+ " ORDER BY " + COL_NO +" DESC;";
 		Cursor cursor = db.rawQuery(sql , null);
 		
-		if(cursor.getCount() > 0) { 
-			if(cursor.moveToNext()){
-				ret = cursor.getInt(0);
-			}
+		if(cursor.getCount() > from) { 
+			do {
+				cursor.moveToNext();
+			} while(from > 0);
+			//while(cursor.moveToNext()){
+			//}
+			ret = cursor.getInt(0);
 		}
 		cursor.close();
 		db.close();
@@ -114,7 +118,7 @@ public class DogDataDB extends SQLiteOpenHelper {
 		int iDataCount = geDataCount();
 		if(iDataCount >= DB_MAX_ROW) {
 			//remove oldest data
-			int iOldestNo = getOldestDogNo();
+			int iOldestNo = getOldestDogNo(0);
 			if(iOldestNo > 0) {
 				String delSql = "DELETE FROM " + TABLE_NAME + " WHERE "
 						+ COL_NO + "=" + iOldestNo + ";";
@@ -146,7 +150,49 @@ public class DogDataDB extends SQLiteOpenHelper {
 		db.execSQL(insertSql);
 		db.close();
 	}
-	
+	public void addAll(ArrayList<DogData> inputs) {
+		SQLiteDatabase db = null;
+		if(inputs != null && !inputs.isEmpty()) {
+			//If data count is over MAX_ROW, remove oldest Data
+			int iDataCount = geDataCount();
+			int inputSize = inputs.size();
+			if(iDataCount + inputSize >= DB_MAX_ROW) {
+				//remove oldest data
+				int iOldestNo = getOldestDogNo(inputSize - 1);
+				if(iOldestNo > 0) {
+					String delSql = "DELETE FROM " + TABLE_NAME + " WHERE "
+							+ COL_NO + "<=" + iOldestNo + ";";
+					db = getWritableDatabase();
+					db.execSQL(delSql);
+					db.close();
+					Log.d("Test", "DB-del:" + iOldestNo);
+				}
+			}
+			//insert new data
+			db = getWritableDatabase();
+			for(DogData dog : inputs) {
+				int iReadMark = dog.blReadMark == false ? 0 : 1;
+				String insertSql = "INSERT INTO " + TABLE_NAME
+						+ "(" + COL_NO + ", "
+						+ COL_SPECIES + ", "
+						+ COL_CHARACTER + ", "
+						+ COL_PRICE + ", "
+						+ COL_URI + ", "
+						+ COL_CONTACT_NUM + ", "
+						+ COL_READMARK + ")" + " VALUES("
+						+ dog.iNo + ", "
+						+ "'" + dog.strSpecies + "', "
+						+ "'" + dog.strCharacter + "', "
+						+ "'" + dog.strPrice + "', "
+						+ "'" + dog.strUri + "', "
+						+ "'" + dog.strContactNum + "', "
+						+ iReadMark
+						+ ");";
+				db.execSQL(insertSql);
+			}
+			db.close();
+		}
+	}
 	public ArrayList<DogData> loadDB() {
 		//Log.d("Test", getLatestDogNo() +", " + getOldestDogNo());
 		ArrayList<DogData> datas = null;

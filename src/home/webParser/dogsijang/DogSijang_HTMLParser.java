@@ -125,15 +125,16 @@ public class DogSijang_HTMLParser extends Object
 							}
 						}
 					}
+
+					if(mCb != null) {
+						mCb.OnCallback(CallbackEvent.HTML_PARSING_DONE, 0, 0, mNewDogData);
+					}
 					
 					mHandler.post(new Runnable()
 					{
 						public void run()
 						{
-							if(mCb != null) {
-								mCb.OnCallback(CallbackEvent.HTML_PARSING_DONE, 0, 0, mNewDogData);
-							}
-							progressDialog.cancel();
+							progressDialog.dismiss();
 						}
 					});
 				}catch (MalformedURLException e)
