@@ -85,9 +85,7 @@ public class DogDataDB extends SQLiteOpenHelper {
 		if(cursor.getCount() > from) { 
 			do {
 				cursor.moveToNext();
-			} while(from > 0);
-			//while(cursor.moveToNext()){
-			//}
+			} while(from-- >= 0);
 			ret = cursor.getInt(0);
 		}
 		cursor.close();

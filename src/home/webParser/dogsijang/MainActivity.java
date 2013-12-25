@@ -49,6 +49,9 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		};
 		Collections.sort(mDogData, mArrayComparator);
 		Collections.reverse(mDogData);
+//		for(DogData obj : mDogData) {
+//			Log.d("Test", obj.iNo +", "+obj.strSpecies);
+//		}
 		mMainListView = (ListView)findViewById(R.id.listview_main);
 		mHandler = new Handler();
 		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, mDogData, this);
