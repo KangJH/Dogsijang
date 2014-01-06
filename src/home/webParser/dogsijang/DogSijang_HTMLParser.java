@@ -31,18 +31,13 @@ public class DogSijang_HTMLParser extends Object
 	private ProgressDialog progressDialog;
 	private Source source;
 	private Callback mCb;
-	private ArrayList<DogData> mOriginDogData;
 	private ArrayList<DogData> mNewDogData;
 	
-	public DogSijang_HTMLParser(Context context, Handler handler, ArrayList<DogData> dogData, Callback cb)
+	public DogSijang_HTMLParser(Context context, Handler handler, Callback cb)
 	{
 		mContext = context;
 		mHandler = handler;
-		mOriginDogData = dogData;
-		if(mNewDogData != null) {
-			mNewDogData.clear();
-			mNewDogData = null;
-		}
+		mNewDogData = new ArrayList<DogData>();
 		mCb = cb;
 		/*for(DogData dog : mOriginDogData) {
 			Log.d("Test", "Old:" + dog.iNo + ", " + dog.strSpecies);
@@ -110,19 +105,12 @@ public class DogSijang_HTMLParser extends Object
 							DogData dogData = new DogData();
 							dogData.iNo = Integer.parseInt(tdList.get(0).getContent().toString().trim()); 
 							Element species = tdList.get(1).getAllElements(HTMLElementName.A).get(0);
-							dogData.strSpecies = species.getContent().toString();
-							if(!isExistData(dogData)) {
-								dogData.strCharacter = tdList.get(2).getAllElements(HTMLElementName.FONT).get(0).getAllElements(HTMLElementName.A).get(0).getContent().toString();
-								dogData.strPrice = tdList.get(6).getContent().toString();
-								dogData.strUri = species.getAttributes().getValue("href");
-								dogData.strContactNum = tdList.get(8).getAllElements(HTMLElementName.FONT).get(0).getContent().toString().trim();
-								if(mNewDogData == null) {
-									mNewDogData = new ArrayList<DogData>();
-								}
-								mNewDogData.add(dogData);
-							} else {
-								dogData = null;
-							}
+							dogData.strSpecies = species.getContent().toString();dogData.strCharacter = tdList.get(2).getAllElements(HTMLElementName.FONT).get(0).getAllElements(HTMLElementName.A).get(0).getContent().toString();
+							dogData.strPrice = tdList.get(6).getContent().toString();
+							dogData.strUri = species.getAttributes().getValue("href");
+							dogData.strContactNum = tdList.get(8).getAllElements(HTMLElementName.FONT).get(0).getContent().toString().trim();
+
+							mNewDogData.add(dogData);
 						}
 					}
 
@@ -149,17 +137,5 @@ public class DogSijang_HTMLParser extends Object
 			}
 			
 		}.start();
-	}
-	private boolean isExistData(DogData input) {
-		boolean ret = false; 
-		if(mOriginDogData != null && !mOriginDogData.isEmpty()) {
-			for(DogData obj : mOriginDogData) {
-				if(obj.equals(input)) {
-					ret = true;
-					break;
-				}
-			}
-		}
-		return ret;
 	}
 }

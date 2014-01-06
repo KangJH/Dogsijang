@@ -148,6 +148,13 @@ public class DogDataDB extends SQLiteOpenHelper {
 		db.execSQL(insertSql);
 		db.close();
 	}
+	public void clearAll() {
+		SQLiteDatabase db = null;
+		String delSql = "DELETE FROM " + TABLE_NAME + " ;";
+		db = getWritableDatabase();
+		db.execSQL(delSql);
+		db.close();
+	}
 	public void addAll(ArrayList<DogData> inputs) {
 		SQLiteDatabase db = null;
 		if(inputs != null && !inputs.isEmpty()) {

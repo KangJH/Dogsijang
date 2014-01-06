@@ -2,6 +2,11 @@ package home.webParser.dogsijang;
 
 import home.webParser.dogsijang.DogSijang_HTMLParser.CallbackEvent;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,37 +29,26 @@ import android.widget.ListView;
 public class MainActivity extends Activity implements OnItemClickListener, OnClickListener, DogSijang_HTMLParser.Callback {
 
 	ArrayList<DogData> mDogData = null;
-	Comparator<DogData> mArrayComparator = null;
 	ListView		mMainListView = null;
 	ListItem_Main	mMainAdapter = null;
-	DogDataDB		mDogDB = null;
+	//DogDataDB		mDogDB = null;
+	File 			mDogDBFile = null;
 	Handler mHandler = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		mDogDB = new DogDataDB(this);
-		mDogData = mDogDB.loadDB();
+		mDogDBFile = getDatabasePath(getResources().getString(R.string.dogsijang_db));
+		mDogData = loadDogData();
 		if(mDogData == null) {
 			mDogData = new ArrayList<DogData>();
 		}
-		//sort dog array by 'no'
-		mArrayComparator = new Comparator<DogData>() {
-			private final Collator   collator = Collator.getInstance();
-			@Override
-			public int compare(DogData lhs, DogData rhs) {
-				// TODO Auto-generated method stub
-				return collator.compare(Integer.toString(lhs.iNo), Integer.toString(rhs.iNo));
-			}
-		};
-		Collections.sort(mDogData, mArrayComparator);
-		Collections.reverse(mDogData);
 //		for(DogData obj : mDogData) {
 //			Log.d("Test", obj.iNo +", "+obj.strSpecies);
 //		}
 		mMainListView = (ListView)findViewById(R.id.listview_main);
 		mHandler = new Handler();
-		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, mDogData, this);
+		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, this);
 		hp.open();
 		mMainAdapter = new ListItem_Main(this, R.layout.listitem_main, mDogData, this);
         mMainListView.setAdapter(mMainAdapter);
@@ -67,7 +61,11 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+	protected void onDestroy() {
+		super.onDestroy();
+		clearDogData();
+		saveDogData(mDogData);
+	}
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
@@ -80,7 +78,7 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 					String mainBoardName = getResources().getString(R.string.dogsijang_main_url);//"http://www.dogsijang.co.kr/board_dog";
 					String url = mainBoardName + data.strUri.substring(1);
 					data.blReadMark = true;
-					mDogDB.update(data);
+					//mDogDB.update(data);
 					mMainAdapter.notifyDataSetChanged();
 					openBrowser(this, url);
 				}
@@ -113,27 +111,29 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 	public void OnCallback(CallbackEvent event, long param1, long param2,
 			Object extraObj) {
 		if(event == CallbackEvent.HTML_PARSING_DONE) {
-			if(mDogDB != null) {
-				final ArrayList<DogData> newDogData = (ArrayList<DogData>) extraObj;
-				if(newDogData != null && !newDogData.isEmpty()) {
-					mDogDB.addAll(newDogData);
-					if(mHandler != null) {
-						mHandler.post(new Runnable() {
-							public void run() {
-								mDogData.addAll(newDogData);
-								Collections.sort(mDogData, mArrayComparator);
-								Collections.reverse(mDogData);
-								if(mMainAdapter != null) {
-									mMainAdapter.notifyDataSetChanged();
-								}
-							}
-						});
+			final ArrayList<DogData> newDogData = (ArrayList<DogData>) extraObj;
+			if(newDogData != null) {
+				for(DogData obj : newDogData) {
+					DogData oldObj = isExistData(obj);
+					if(oldObj != null) {
+						obj.blReadMark = oldObj.blReadMark;
 					}
 				}
-				
+				clearDogData();
+				saveDogData(newDogData);
+				if(mHandler != null) {
+					mHandler.post(new Runnable() {
+						public void run() {
+							mDogData.clear();
+							mDogData.addAll(newDogData);
+							if(mMainAdapter != null) {
+								mMainAdapter.notifyDataSetChanged();
+							}
+						}
+					});
+				}
 			}
 		}
-		
 	}
 	
 	private static final String HTTPS = "https://";
@@ -157,5 +157,79 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		callIntent.setData(Uri.parse("tel:" + trimedPhoneNumber));
 		startActivity(callIntent);
 	}
-
+	//relate to DB
+	private ArrayList<DogData> loadDogData() {
+		ArrayList<DogData> ret = null;
+		
+		if(mDogDBFile != null && mDogDBFile.exists()) {
+			try 
+			{
+				ret = new ArrayList<DogData>(); 
+				FileInputStream fis = new FileInputStream(mDogDBFile); 
+				ObjectInputStream ois = new ObjectInputStream(fis); 
+				while(true) {
+					DogData obj = (DogData)ois.readObject();
+					if(obj != null) {
+						ret.add(obj);
+					}
+					boolean isEOF = ois.readBoolean();
+					if(isEOF) {
+						break;
+					}
+				}
+				ois.close();
+				fis.close();
+			} 
+			catch(Throwable e) 
+			{
+				System.err.println(e); 
+			} 
+		}
+		return ret;
+	}
+	
+	private void saveDogData(ArrayList<DogData> array) {
+		try 
+		{
+			FileOutputStream fos = new FileOutputStream(mDogDBFile); 
+			ObjectOutputStream oos = new ObjectOutputStream(fos); 
+			int arrayCount = array.size();
+			int index = 0;
+			for(DogData obj : array) {
+				oos.writeObject(obj);
+				index++;
+				if(index == arrayCount) {
+					oos.writeBoolean(true);
+				} else {
+					oos.writeBoolean(false);
+				}
+			}
+			oos.close();
+			fos.close();
+		} 
+		catch(Throwable e) 
+		{
+			System.err.println(e); 
+		} 
+	}
+	
+	private boolean clearDogData() {
+		boolean ret = false;
+		if(mDogDBFile != null) {
+			ret = mDogDBFile.delete();
+		}
+		return ret;
+	}
+	private DogData isExistData(DogData input) {
+		DogData ret = null; 
+		if(mDogData != null && !mDogData.isEmpty()) {
+			for(DogData obj : mDogData) {
+				if(obj.equals(input)) {
+					ret = obj;
+					break;
+				}
+			}
+		}
+		return ret;
+	}
 }
