@@ -4,6 +4,10 @@
     <string name="app_name">DogSijang</string>
     <string name="action_settings">Settings</string>
     <string name="progress_content">Data Loading...</string>
+    <string name="disconnected_network_title">Disconnected Network</string>
+    <string name="reconnect_network">Do you want to reconnect netwokr?</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_no">No</string>
     <string name="dogsijang_db">dog_data.dat</string>
 	<string name="dogsijang_main_url">http://www.dogsijang.co.kr/board_dog</string>
 	<string name="dogsijang_sale_url">http://www.dogsijang.co.kr/board_dog/list.php?tb=board_sale</string>

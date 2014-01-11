@@ -12,11 +12,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
@@ -31,6 +35,7 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 	ArrayList<DogData> mDogData = null;
 	ListView		mMainListView = null;
 	ListItem_Main	mMainAdapter = null;
+	DogSijang_HTMLParser mHTMLParser = null;
 	//DogDataDB		mDogDB = null;
 	File 			mDogDBFile = null;
 	Handler mHandler = null;
@@ -48,8 +53,8 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 //		}
 		mMainListView = (ListView)findViewById(R.id.listview_main);
 		mHandler = new Handler();
-		DogSijang_HTMLParser hp = new DogSijang_HTMLParser(this, mHandler, this);
-		hp.open();
+		mHTMLParser = new DogSijang_HTMLParser(this, mHandler, this);
+		mHTMLParser.open();
 		mMainAdapter = new ListItem_Main(this, R.layout.listitem_main, mDogData, this);
         mMainListView.setAdapter(mMainAdapter);
         mMainListView.setOnItemClickListener(this);
@@ -133,6 +138,8 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 					});
 				}
 			}
+		} else if(event == CallbackEvent.HTML_PARSING_ERROR) {
+			finish();
 		}
 	}
 	
@@ -157,6 +164,8 @@ public class MainActivity extends Activity implements OnItemClickListener, OnCli
 		callIntent.setData(Uri.parse("tel:" + trimedPhoneNumber));
 		startActivity(callIntent);
 	}
+	
+	
 	//relate to DB
 	private ArrayList<DogData> loadDogData() {
 		ArrayList<DogData> ret = null;
